@@ -189,24 +189,58 @@ function Courses({lessons,state,startLesson}){
 function Lesson({lesson,index,selected,answered,score,choose,next,exit}){
   const q=lesson.questions[index], pct=((index)/lesson.questions.length)*100;
 
-  // Browser TTS needs an explicit language. Without it, Ukrainian answers can be
-  // sent to the browser's default voice (often English), or become silent when
-  // no matching voice is selected. Choose a matching installed voice when possible.
+  // Speak the answer in its actual language. The previous code looked only for
+  // Ukrainian-specific letters (ї, і, є, ґ), so words such as "Мене звати Алекс"
+  // were incorrectly detected as English. It also assumed the voice list was ready.
   const speak=()=>{
-    if(!("speechSynthesis" in window)){return;}
-    speechSynthesis.cancel();
-    const text=String(q.answer);
-    const isUkrainian=/[іїєґІЇЄҐ]/.test(text);
+    if(!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+
+    const text=String(q.answer).trim();
+    if(!text) return;
+
+    // Any Cyrillic letter means Ukrainian in this course; otherwise use English.
+    const isUkrainian=/[\u0400-\u04FF]/.test(text);
     const lang=isUkrainian?"uk-UA":"en-US";
-    const utterance=new SpeechSynthesisUtterance(text);
-    utterance.lang=lang;
-    utterance.rate=0.9;
-    utterance.pitch=1;
-    const voices=speechSynthesis.getVoices();
-    const voice=voices.find(v=>v.lang.toLowerCase().startsWith(lang.toLowerCase()))
-      || voices.find(v=>v.lang.toLowerCase().startsWith(isUkrainian?"uk":"en"));
-    if(voice) utterance.voice=voice;
-    speechSynthesis.speak(utterance);
+    const synth=window.speechSynthesis;
+
+    const speakWithVoices=()=>{
+      synth.cancel();
+      const utterance=new SpeechSynthesisUtterance(text);
+      utterance.lang=lang;
+      utterance.rate=isUkrainian?0.9:0.9;
+      utterance.pitch=1;
+
+      const voices=synth.getVoices();
+      const exact=voices.find(v=>v.lang && v.lang.toLowerCase()===lang.toLowerCase());
+      const regional=voices.find(v=>v.lang && v.lang.toLowerCase().startsWith(isUkrainian?"uk":"en"));
+      const voice=exact || regional;
+      if(voice) utterance.voice=voice;
+
+      // Some Chromium installations return no voices on the first call.
+      // Setting lang is still valid and lets the browser choose its default.
+      synth.speak(utterance);
+    };
+
+    const voices=synth.getVoices();
+    if(voices.length){
+      speakWithVoices();
+    }else{
+      // Wait for Chromium/Windows to populate the voice list, then speak.
+      let done=false;
+      const onVoicesChanged=()=>{
+        if(done)return;
+        done=true;
+        synth.removeEventListener("voiceschanged",onVoicesChanged);
+        speakWithVoices();
+      };
+      synth.addEventListener("voiceschanged",onVoicesChanged);
+      setTimeout(()=>{
+        if(done)return;
+        done=true;
+        synth.removeEventListener("voiceschanged",onVoicesChanged);
+        speakWithVoices();
+      },500);
+    }
   };
 
   return <div className="lesson-screen">
