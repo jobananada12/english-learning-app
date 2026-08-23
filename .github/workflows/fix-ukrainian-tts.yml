@@ -1,0 +1,107 @@
+name: Fix Ukrainian TTS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-ukrainian-tts.yml'
+      - 'src/main.jsx'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[tts-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch Ukrainian speech fallback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('src/main.jsx')
+          s = p.read_text(encoding='utf-8')
+
+          start = s.find('  const speak=()=>{', s.find('function Lesson('))
+          marker = '\n  };\n\n  return <div className="lesson-screen">'
+          end = s.find(marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit('Lesson speak function not found')
+
+          new = r'''  const speak=()=>{
+    if(!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+
+    const text=String(q.answer).trim();
+    if(!text)return;
+
+    const isUkrainian=/[\u0400-\u04FF]/.test(text);
+    const synth=window.speechSynthesis;
+
+    if(isUkrainian){
+      synth.cancel();
+
+      // Prefer a real installed Ukrainian voice when Windows/Chrome provides one.
+      const voices=synth.getVoices();
+      const ukVoice=voices.find(v=>v.lang&&v.lang.toLowerCase()==="uk-ua") ||
+                    voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith("uk"));
+
+      if(ukVoice){
+        const u=new SpeechSynthesisUtterance(text);
+        u.lang="uk-UA";
+        u.voice=ukVoice;
+        u.rate=0.9;
+        u.pitch=1;
+        synth.speak(u);
+        return;
+      }
+
+      // No Ukrainian system voice: use Google Translate's Ukrainian TTS audio.
+      // The call is made from the user's button click, so Chrome allows playback.
+      const url="https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=uk-UA&q="+encodeURIComponent(text);
+      const audio=new Audio(url);
+      audio.preload="auto";
+      audio.play().catch(()=>{
+        const u=new SpeechSynthesisUtterance(text);
+        u.lang="uk-UA";
+        u.rate=0.9;
+        synth.speak(u);
+      });
+      return;
+    }
+
+    // English continues to use the local browser voice.
+    synth.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="en-US";
+    u.rate=0.9;
+    u.pitch=1;
+    const voices=synth.getVoices();
+    const voice=voices.find(v=>v.lang&&v.lang.toLowerCase()==="en-us") ||
+                voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith("en"));
+    if(voice)u.voice=voice;
+    synth.speak(u);
+  };'''
+
+          s = s[:start] + new + s[end+4:]
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Build check
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit patched app
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.jsx
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: Ukrainian TTS fallback [tts-patched]"
+          git push
