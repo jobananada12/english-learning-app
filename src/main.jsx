@@ -188,7 +188,27 @@ function Courses({lessons,state,startLesson}){
 
 function Lesson({lesson,index,selected,answered,score,choose,next,exit}){
   const q=lesson.questions[index], pct=((index)/lesson.questions.length)*100;
-  const speak=()=>{if("speechSynthesis" in window){speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(q.answer));}};
+
+  // Browser TTS needs an explicit language. Without it, Ukrainian answers can be
+  // sent to the browser's default voice (often English), or become silent when
+  // no matching voice is selected. Choose a matching installed voice when possible.
+  const speak=()=>{
+    if(!("speechSynthesis" in window)){return;}
+    speechSynthesis.cancel();
+    const text=String(q.answer);
+    const isUkrainian=/[іїєґІЇЄҐ]/.test(text);
+    const lang=isUkrainian?"uk-UA":"en-US";
+    const utterance=new SpeechSynthesisUtterance(text);
+    utterance.lang=lang;
+    utterance.rate=0.9;
+    utterance.pitch=1;
+    const voices=speechSynthesis.getVoices();
+    const voice=voices.find(v=>v.lang.toLowerCase().startsWith(lang.toLowerCase()))
+      || voices.find(v=>v.lang.toLowerCase().startsWith(isUkrainian?"uk":"en"));
+    if(voice) utterance.voice=voice;
+    speechSynthesis.speak(utterance);
+  };
+
   return <div className="lesson-screen">
     <div className="lesson-top"><button onClick={exit}><X/></button><div className="progress"><i style={{width:`${pct}%`}}/></div><span>❤️</span></div>
     <div className="question">
