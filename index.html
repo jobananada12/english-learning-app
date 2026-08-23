@@ -5,6 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#58cc02" />
     <title>English AI</title>
+    <script>
+      // Ukrainian TTS fallback.
+      // Chrome/Windows may expose no uk-UA voice at all, so the native
+      // speechSynthesis API can silently produce no Ukrainian audio.
+      // For Ukrainian utterances we use Google's public TTS endpoint as an
+      // audio fallback; English continues to use the browser's native TTS.
+      (() => {
+        const native = window.speechSynthesis;
+        if (!native || !window.SpeechSynthesisUtterance) return;
+
+        const originalSpeak = native.speak.bind(native);
+        const originalCancel = native.cancel.bind(native);
+        let ukrainianAudio = null;
+
+        native.speak = (utterance) => {
+          const lang = String(utterance?.lang || '').toLowerCase();
+          const text = String(utterance?.text || '').trim();
+
+          if (!lang.startsWith('uk') || !text) {
+            originalSpeak(utterance);
+            return;
+          }
+
+          originalCancel();
+          if (ukrainianAudio) {
+            ukrainianAudio.pause();
+            ukrainianAudio.currentTime = 0;
+          }
+
+          const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=uk&q=' + encodeURIComponent(text);
+          ukrainianAudio = new Audio(url);
+          ukrainianAudio.volume = 1;
+          ukrainianAudio.play().catch(() => {
+            // If autoplay is blocked, retry directly after the user click.
+            const retry = () => {
+              ukrainianAudio?.play().catch(() => {});
+              window.removeEventListener('click', retry);
+            };
+            window.addEventListener('click', retry, { once: true });
+          });
+        };
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
