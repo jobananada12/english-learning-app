@@ -25,7 +25,7 @@ function App(){
     setState(s=>({...s,streak:s.lastDay===yesterday?s.streak+1:(s.lastDay?1:0),lastDay:today}));
   },[]);
 
-  const notify=(text)=>{setToast(text);window.clearTimeout(notify.timer);notify.timer=window.setTimeout(()=>setToast(""),1800);};
+  const notify=(text)=>{setToast(text);window.clearTimeout(notify.timer);notify.timer=window.setTimeout(()=>setToast(""),2600);};
   const startLesson=(item)=>{
     if(!state.completed.includes(item.id)&&state.hearts<=0){notify("Немає сердечок ❤️");return;}
     setLesson(item);setIndex(0);setSelected(null);setAnswered(false);setScore(0);setScreen("lesson");
@@ -46,7 +46,7 @@ function App(){
   };
   const reset=()=>{setState(resetState());setScreen("home");notify("Прогрес скинуто");};
 
-  if(screen==="lesson")return <Lesson lesson={lesson} index={index} selected={selected} answered={answered} score={score} choose={choose} next={next} exit={()=>setScreen("home")}/>;
+  if(screen==="lesson")return <Lesson lesson={lesson} index={index} selected={selected} answered={answered} score={score} choose={choose} next={next} exit={()=>setScreen("home")} notify={notify}/>;
   if(screen==="result")return <Result lesson={lesson} score={score} state={state} home={()=>setScreen("home")} again={()=>startLesson(lesson)}/>;
 
   return <div className="app">
@@ -77,7 +77,25 @@ function LessonCard({lesson,index,state,lessons,startLesson}){const done=state.c
 
 function Courses({lessons,state,startLesson}){return <div className="page"><div className="titlebar"><div><p className="eyebrow">КУРС</p><h1>Англійська A1 → B2</h1></div><div className="level">LVL {state.level}</div></div><div className="course-progress card"><b>Прогрес</b><div className="progress"><i style={{width:`${state.completed.length/lessons.length*100}%`}}/></div><span>{state.completed.length} з {lessons.length} уроків</span></div><div className="path">{lessons.map((l,i)=><LessonCard key={l.id} lesson={l} index={i} state={state} lessons={lessons} startLesson={startLesson}/>)}</div></div>}
 
-function Lesson({lesson,index,selected,answered,score,choose,next,exit}){const q=lesson.questions[index];const pct=index/lesson.questions.length*100;return <div className="lesson-screen"><div className="lesson-top"><button onClick={exit}><X/></button><div className="progress"><i style={{width:`${pct}%`}}/></div><span>❤️</span></div><div className="question"><div className="q-meta">УРОК · {index+1}/{lesson.questions.length}</div><h1>{q.q}</h1><button className="speak" onClick={()=>speakText(q.answer)}><Volume2/> Прослухати відповідь</button><div className="answers">{q.options.map(o=><button key={o} disabled={answered} className={`${answered&&o===q.answer?"correct":""} ${answered&&selected===o&&o!==q.answer?"wrong":""}`} onClick={()=>choose(o)}>{o}{answered&&o===q.answer?<Check/>:answered&&selected===o?<X/>:null}</button>)}</div></div>{answered&&<div className={`feedback ${selected===q.answer?"good":"bad"}`}><b>{selected===q.answer?"Чудово! 🎉":"Майже!"}</b><span>{selected===q.answer?"Правильна відповідь.":"Правильна відповідь: "+q.answer}</span></div>}<button className="continue" disabled={!answered} onClick={next}>{index===lesson.questions.length-1?"Завершити урок":"Продовжити"} <ChevronRight/></button></div>}
+function Lesson({lesson,index,selected,answered,score,choose,next,exit,notify}){
+  const q=lesson.questions[index];
+  const pct=index/lesson.questions.length*100;
+  const [speaking,setSpeaking]=useState(false);
+
+  const listen=async()=>{
+    if(speaking)return;
+    setSpeaking(true);
+    const result=await speakText(q.answer);
+    setSpeaking(false);
+    if(result?.reason==="language-not-installed"){
+      notify("На Android немає голосу ${result.lang}. Відкрито встановлення голосу.");
+    }else if(!result?.ok){
+      notify("Не вдалося запустити озвучку.");
+    }
+  };
+
+  return <div className="lesson-screen"><div className="lesson-top"><button onClick={exit}><X/></button><div className="progress"><i style={{width:`${pct}%`}}/></div><span>❤️</span></div><div className="question"><div className="q-meta">УРОК · {index+1}/{lesson.questions.length}</div><h1>{q.q}</h1><button className="speak" onClick={listen} disabled={speaking}><Volume2/> {speaking?"Озвучення...":"Прослухати відповідь"}</button><div className="answers">{q.options.map(o=><button key={o} disabled={answered} className={`${answered&&o===q.answer?"correct":""} ${answered&&selected===o&&o!==q.answer?"wrong":""}`} onClick={()=>choose(o)}>{o}{answered&&o===q.answer?<Check/>:answered&&selected===o?<X/>:null}</button>)}</div></div>{answered&&<div className={`feedback ${selected===q.answer?"good":"bad"}`}><b>{selected===q.answer?"Чудово! 🎉":"Майже!"}</b><span>{selected===q.answer?"Правильна відповідь.":"Правильна відповідь: "+q.answer}</span></div>}<button className="continue" disabled={!answered} onClick={next}>{index===lesson.questions.length-1?"Завершити урок":"Продовжити"} <ChevronRight/></button></div>
+}
 
 function Result({lesson,score,state,home,again}){const total=lesson.questions.length;const perfect=score===total;return <div className="result"><div className="confetti">🎉</div><p className="eyebrow">УРОК ЗАВЕРШЕНО</p><h1>{perfect?"Ідеально!":"Молодець!"}</h1><p>Ти завершив урок «{lesson.title}».</p><div className="result-grid"><div><Star/><b>+{lesson.xp+(perfect?10:0)}</b><span>XP</span></div><div><Check/><b>{score}/{total}</b><span>Правильних</span></div><div><Flame/><b>{state.streak}</b><span>Серія</span></div></div><button className="continue" onClick={home}>Продовжити <ChevronRight/></button><button className="secondary" onClick={again}><RotateCcw/> Повторити урок</button></div>}
 
