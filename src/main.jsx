@@ -88,7 +88,7 @@ function Lesson({lesson,index,selected,answered,score,choose,next,exit,notify}){
     const result=await speakText(q.answer);
     setSpeaking(false);
     if(result?.reason==="language-not-installed"){
-      notify("На Android немає голосу ${result.lang}. Відкрито встановлення голосу.");
+      notify(`На Android немає голосу ${result.lang}. Відкрито встановлення голосу.`);
     }else if(!result?.ok){
       notify("Не вдалося запустити озвучку.");
     }
