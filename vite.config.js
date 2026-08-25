@@ -38,5 +38,12 @@ export default defineConfig({
         return html.replace('</head>', ukrainianTtsScript + '</head>')
       }
     }
-  ]
+  ],
+  server: {
+    watch: {
+      // Android/Gradle generates report files while the app is running.
+      // They are not source files and must not trigger Vite reloads.
+      ignored: ['**/android/**', '**/android_backup/**']
+    }
+  }
 })
