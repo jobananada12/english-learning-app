@@ -24,7 +24,11 @@ export function buildExercises(lesson,source='uk',target='en'){
   const seed=hash((lesson.id||1)*97+i*31), item=words[i%words.length], ds=makeDistractors(words,item,seed), type=EXERCISE_TYPES[i%EXERCISE_TYPES.length];
   const en=item[0], uk=item[1], sentence=sentenceFor(en,uk);
   const bilingual=(textEn,textUk)=>({en:textEn,uk:textUk});
-  if(type==='translate')out.push({id:`${lesson.id}-t${i}`,type,question:bilingual(`Translate “${uk}”`,`Переклади «${uk}»`),options:shuffle([item,...ds],seed).map(x=>bilingual(x[0],x[1])),answer:en,audio:[{text:uk,code:source},{text:en,code:target}]});
+  if(type==='translate'){
+   const sourceText=source==='uk'?uk:en;
+   const answer=source==='uk'?en:uk;
+   out.push({id:`${lesson.id}-t${i}`,type,sourceText,question:bilingual(`Translate «${sourceText}»`,`Переклади «${sourceText}»`),options:shuffle([item,...ds],seed).map(x=>bilingual(x[0],x[1])),answer,audio:[{text:sourceText,code:source},{text:sourceText,code:target}]});
+  }
   else if(type==='choice')out.push({id:`${lesson.id}-c${i}`,type,question:bilingual(`What does “${en}” mean?`,`Що означає «${en}»?`),options:shuffle([item,...ds],seed+1).map(x=>bilingual(x[0],x[1])),answer:uk,audio:[{text:en,code:target},{text:uk,code:source}]});
   else if(type==='word_order'){
    const tokens=shuffle(sentence.en.replace(/[.?!]$/,'').split(' '),seed);
