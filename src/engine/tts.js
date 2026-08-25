@@ -1,0 +1,5 @@
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+
+const LOCALES={uk:'uk-UA',en:'en-US',pl:'pl-PL',de:'de-DE',fr:'fr-FR',es:'es-ES',it:'it-IT',pt:'pt-PT',nl:'nl-NL',cs:'cs-CZ',sk:'sk-SK',ro:'ro-RO',hu:'hu-HU',tr:'tr-TR',sv:'sv-SE',no:'nb-NO',da:'da-DK',fi:'fi-FI',ja:'ja-JP',ko:'ko-KR',zh:'zh-CN',ar:'ar-SA',hi:'hi-IN'};
+export function localeFor(code){return LOCALES[code]||code||'en-US'}
+export async function speak(text,codeOrLocale){if(!text)return false;const lang=LOCALES[codeOrLocale]||codeOrLocale||'en-US';try{if(window.Capacitor?.getPlatform?.()==='android'){await TextToSpeech.stop();await TextToSpeech.speak({text:String(text),lang,rate:.9,pitch:1,volume:1,queueStrategy:0});return true}}catch(e){console.warn('Native TTS failed',e)}try{if('speechSynthesis' in window){window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=.9;window.speechSynthesis.speak(u);return true}}catch(e){console.warn('Web TTS failed',e)}return false}
