@@ -37,6 +37,22 @@ export default defineConfig({
       transformIndexHtml(html) {
         return html.replace('</head>', ukrainianTtsScript + '</head>')
       }
+    },
+    {
+      name: 'megaapp-language-ui-fix',
+      transform(code, id) {
+        if (!id.endsWith('/src/MegaApp.jsx') && !id.endsWith('\\src\\MegaApp.jsx')) return null;
+
+        let next = code.replaceAll('<span>UK</span>', '<span>UA</span>');
+
+        next = next.replace(
+          /function TranslateQuestion\(\{value,source,target\}\)\{[\s\S]*?\}\n?function TranslateOption/,
+          `function TranslateQuestion({value,source,target}){const v=bilingual(value);const phrase=source==='uk'?v.uk:v.en;const mainLabel=target==='en'?'Translate':'Переклади';const localLabel=source==='uk'?'Переклади':'Translate';const mainSpeech=\`${'${mainLabel}'} \${phrase}\`;const localSpeech=\`${'${localLabel}'} \${phrase}\`;return <div className="translate-question"><div><b>{mainLabel} «{phrase}»</b><SpeakButton text={phrase} code={target} speechText={mainSpeech}/></div><div><b>{localLabel} «{phrase}»</b><SpeakButton text={phrase} code={source} speechText={localSpeech}/></div></div>}\nfunction TranslateOption`
+        );
+
+        if (next === code) return null;
+        return { code: next, map: null };
+      }
     }
   ],
   server: {
