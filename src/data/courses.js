@@ -88,15 +88,14 @@ function shuffle(items, seed) {
   return out;
 }
 
-function makeQuestions(words, lessonNumber, level) {
+function makeQuestions(words, lessonNumber) {
   const picks = shuffle(words, lessonNumber).slice(0, 4);
   return picks.map(([en, uk], index) => {
-    const distractors = shuffle(words.filter(([word]) => word !== en), lessonNumber + index * 11).slice(0, 3).map(([, tr]) => tr);
-    const options = shuffle([uk, ...distractors], lessonNumber + index);
+    const pairs = words.filter(([word]) => word !== en);
+    const options = shuffle([[en, uk], ...shuffle(pairs, lessonNumber + index * 11).slice(0, 3)], lessonNumber + index)
+      .map(([optionEn, optionUk]) => ({ en: optionEn, uk: optionUk }));
     return {
-      q: level === 'A1' || level === 'A2'
-        ? `Що означає “${en}”?`
-        : `Choose the best Ukrainian meaning of “${en}”.`,
+      q: `Translate "${en}"`,
       options,
       answer: uk,
       audioLanguage: 'en',
@@ -118,7 +117,7 @@ function makeLessons(level, topics) {
         title: `${kind} ${lessonIndex + 1}`,
         icon: ['📚', '🔄', '🧩', '🎧', '⭐'][lessonIndex],
         xp: 20 + unitIndex * 2 + lessonIndex * 3,
-        questions: makeQuestions(words, number, level.code),
+        questions: makeQuestions(words, number),
       });
     }
   });
