@@ -13,19 +13,10 @@ const save=s=>localStorage.setItem(STORAGE,JSON.stringify(s));
 async function speak(text, locale){
   if(!text)return;
   const lang=locale||'en-US';
-  try{
-    await TextToSpeech.stop();
-    await TextToSpeech.speak({text:String(text),lang,rate:0.9,pitch:1.0,volume:1.0});
-  }catch(err){
-    // Browser fallback for development/web preview.
-    if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=.9;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);}
-    console.warn('TTS failed',err);
-  }
+  try{await TextToSpeech.stop();await TextToSpeech.speak({text:String(text),lang,rate:0.9,pitch:1.0,volume:1.0});}
+  catch(err){if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=.9;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);}console.warn('TTS failed',err);}
 }
-
-function SpeakButton({text,locale,small=false}){
-  return <button type="button" className={`speak-icon ${small?'small':''}`} aria-label={`Прослухати ${text}`} title={`Прослухати: ${text}`} onClick={e=>{e.stopPropagation();speak(text,locale)}}><Volume2 size={small?16:18}/></button>;
-}
+function SpeakButton({text,locale,small=false}){return <button type="button" className={`speak-icon ${small?'small':''}`} aria-label={`Прослухати ${text}`} title={`Прослухати: ${text}`} onClick={e=>{e.stopPropagation();speak(text,locale)}}><Volume2 size={small?16:18}/></button>}
 
 export default function MegaApp(){
  const [state,setState]=useState(read); const [source,setSource]=useState(()=>localStorage.getItem('english-ai-source')||DEFAULT_SOURCE); const [target,setTarget]=useState(()=>localStorage.getItem('english-ai-target')||DEFAULT_TARGET);
@@ -45,12 +36,13 @@ function Home({state,source,target,openLesson,courses,ai}){const s=getCurriculum
 function LessonCard({lesson,state,openLesson}){const done=state.completed.includes(lesson.id);return <button className={`lesson-card ${done?'done':''}`} onClick={()=>openLesson(lesson.number)}><div className="lesson-icon">{done?<Check size={25}/>:lesson.icon}</div><div><small>{lesson.unit}</small><h3>{lesson.title}</h3><span>{lesson.xp} XP · FREE</span></div><ChevronRight/></button>}
 function Courses({state,openLesson,number,setNumber}){return <div className="page"><p className="eyebrow">MEGA CURRICULUM</p><h1>Усі рівні відкриті</h1><div className="card"><h2>Відкрити будь-який урок</h2><p>Номер від 1 до 2 000 000 000.</p><input type="number" min="1" max={MEGA_LESSON_COUNT} value={number} onChange={e=>setNumber(Math.max(1,Math.min(MEGA_LESSON_COUNT,Number(e.target.value)||1)))}/><button className="continue" onClick={()=>openLesson(number)}>Урок #{Number(number).toLocaleString('en-US')} <ChevronRight/></button></div><div className="level-grid">{['A1','A2','B1','B2','C1','C2'].map((l,i)=><button className="level-chip" key={l} onClick={()=>openLesson(Math.floor(i*MEGA_LESSON_COUNT/6)+1)}><b>{l}</b><span>FREE</span></button>)}</div><p className="muted">Завершено: {state.completed.length} · XP: {state.xp}</p></div>}
 function Languages({source,target,setSource,setTarget}){return <div className="page"><p className="eyebrow">LANGUAGE ENGINE</p><h1>Мови</h1><div className="card"><b>Я знаю</b><select value={source} onChange={e=>setSource(e.target.value)}>{LANGUAGE_CATALOG.map(l=><option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select><b>Вивчаю</b><select value={target} onChange={e=>setTarget(e.target.value)}>{LANGUAGE_CATALOG.map(l=><option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select></div><p className="muted">Одна логіка уроків, різні мовні дані.</p></div>}
+function getEnglishQuestion(q){if(q.type==='meaning')return `What does “${q.sourceText}” mean?`;if(q.type==='english')return `Which English word means “${q.targetText}”?`;if(q.type==='task')return `Which word completes the ${q.targetText} task?`;return 'Which pair is correct?'}
+function getLocalizedQuestion(q){if(q.type==='meaning'&&q.targetText)return q.q.replace(q.sourceText,q.targetText);return q.q}
 function Lesson({lesson,source,target,selected,answered,choose,finish,exit}){
- const q=lesson.questions[0];
- const sourceLocale=language(source).locale; const targetLocale=language(target).locale;
+ const q=lesson.questions[0];const sourceLocale=language(source).locale;const targetLocale=language(target).locale;const englishQuestion=getEnglishQuestion(q);const localizedQuestion=getLocalizedQuestion(q);
  return <div className="lesson-screen"><div className="lesson-top"><button onClick={exit}><X/></button><div className="progress"><i style={{width:'100%'}}/></div><span>FREE</span></div><div className="question"><div className="q-meta">{lesson.level} · УРОК #{lesson.number.toLocaleString('en-US')}</div>
-   <div className="question-line"><h1>{q.enQ||q.q}</h1><SpeakButton text={q.enQ||q.q} locale={targetLocale}/></div>
-   <div className="question-line localized"><h2>{q.q}</h2><SpeakButton text={q.q} locale={sourceLocale}/></div>
+   <div className="question-line"><h1>{englishQuestion}</h1><SpeakButton text={englishQuestion} locale={targetLocale}/></div>
+   <div className="question-line localized"><h2>{localizedQuestion}</h2><SpeakButton text={localizedQuestion} locale={sourceLocale}/></div>
    <div className="answers">{q.options.map(o=><div key={o.answerText} role="button" tabIndex={0} className={`answer-card ${answered&&o.answerText===q.answer?'correct':''} ${answered&&selected===o.answerText&&o.answerText!==q.answer?'wrong':''}`} onClick={()=>choose(o)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' ')choose(o)}}>
       <div className="answer-language"><span>EN</span><b>{o.en}</b><SpeakButton text={o.en} locale={targetLocale} small/></div>
       <div className="answer-language native"><span>{source.toUpperCase()}</span><b>{o.native}</b><SpeakButton text={o.native} locale={sourceLocale} small/></div>
