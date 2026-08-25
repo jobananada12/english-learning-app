@@ -2,6 +2,17 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 const isAndroidCapacitor = () => Boolean(window.Capacitor?.getPlatform && window.Capacitor.getPlatform() === 'android');
 
+function detectLocale(text, question) {
+  const value = `${question || ''} ${text || ''}`;
+  if (/[\u0400-\u04FF]/.test(text || '')) return 'uk-UA';
+  if (/[ąęłńóśźż]/i.test(value) || /Przetłumacz|oznacza|Jak powiedzieć|Jak masz/i.test(value)) return 'pl-PL';
+  if (/[äöüß]/i.test(value) || /Übersetze|bedeutet|Wie sagt man|Wie heißt/i.test(value)) return 'de-DE';
+  if (/[àâçéèêëîïôùûüÿœæ]/i.test(value)) return 'fr-FR';
+  if (/[áéíóúñü]/i.test(value)) return 'es-ES';
+  if (/[àèéìíîòóùú]/i.test(value)) return 'it-IT';
+  return 'en-US';
+}
+
 async function nativeSpeak(text, lang) {
   try { await TextToSpeech.stop(); } catch {}
   try {
@@ -18,8 +29,9 @@ function install() {
     const button = event.target.closest?.('button.speak');
     if (!button || !isAndroidCapacitor()) return;
     const text = button.dataset.ttsText;
-    const lang = button.dataset.ttsLang || (/^[\u0400-\u04FF]/.test(text || '') ? 'uk-UA' : 'en-US');
     if (!text) return;
+    const question = button.closest('.question')?.querySelector('h1')?.textContent || '';
+    const lang = button.dataset.ttsLang || detectLocale(text, question);
     event.preventDefault();
     event.stopImmediatePropagation();
     await nativeSpeak(text, lang);
