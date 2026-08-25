@@ -1,3 +1,5 @@
+import { MEGA_LESSON_COUNT, getVirtualLesson, getCurriculumStats, levelForLesson } from './mega-curriculum';
+
 export const LANGUAGE_CATALOG = [
   { code: 'uk', locale: 'uk-UA', name: 'Українська', flag: '🇺🇦' },
   { code: 'en', locale: 'en-US', name: 'English', flag: '🇬🇧' },
@@ -24,61 +26,21 @@ export const LANGUAGE_CATALOG = [
   { code: 'hi', locale: 'hi-IN', name: 'हिन्दी', flag: '🇮🇳' },
 ];
 
-export function language(code) {
-  return LANGUAGE_CATALOG.find(item => item.code === code) || LANGUAGE_CATALOG[0];
-}
-
-export function courseKey(source, target) {
-  return `${source}-${target}`;
-}
+export function language(code) { return LANGUAGE_CATALOG.find(item => item.code === code) || LANGUAGE_CATALOG[0]; }
+export function courseKey(source, target) { return `${source}-${target}`; }
 
 export function normalizeQuestion(question) {
-  return {
-    type: question.type || 'choice',
-    q: String(question.q || ''),
-    options: Array.isArray(question.options) ? question.options : [],
-    answer: String(question.answer || ''),
-    sourceText: question.sourceText || null,
-    targetText: question.targetText || null,
-    audioLanguage: question.audioLanguage || null,
-  };
+  return { type: question.type || 'choice', q: String(question.q || ''), options: Array.isArray(question.options) ? question.options : [], answer: String(question.answer || ''), sourceText: question.sourceText || null, targetText: question.targetText || null, audioLanguage: question.audioLanguage || null };
 }
-
 export function normalizeLesson(lesson, index) {
-  return {
-    id: lesson.id ?? index + 1,
-    unit: lesson.unit || 'Basics',
-    title: lesson.title || `Lesson ${index + 1}`,
-    icon: lesson.icon || '📘',
-    xp: lesson.xp || 20,
-    questions: (lesson.questions || []).map(normalizeQuestion),
-  };
+  return { id: lesson.id ?? index + 1, unit: lesson.unit || 'Basics', title: lesson.title || `Lesson ${index + 1}`, icon: lesson.icon || '📘', xp: lesson.xp || 20, questions: (lesson.questions || []).map(normalizeQuestion) };
 }
-
 export function buildCourse({ id, source, target, title, level = 'A1', lessons = [] }) {
-  return {
-    id: id || courseKey(source, target),
-    source,
-    target,
-    title: title || `${language(source).name} → ${language(target).name}`,
-    level,
-    lessons: lessons.map(normalizeLesson),
-  };
+  return { id: id || courseKey(source, target), source, target, title: title || `${language(source).name} → ${language(target).name}`, level, lessons: lessons.map(normalizeLesson), lessonCount: MEGA_LESSON_COUNT, virtual: true };
 }
+export function getCourse(courses, source, target) { return courses[courseKey(source, target)] || null; }
+export function getAvailableTargets(courses, source) { return Object.values(courses).filter(course => course.source === source).map(course => course.target); }
+export function getAudioLanguage(text, preferredLanguage) { if (preferredLanguage) return language(preferredLanguage).locale; const value = String(text || ''); if (/^[\u0400-\u04FF]/.test(value)) return 'uk-UA'; return 'en-US'; }
 
-export function getCourse(courses, source, target) {
-  return courses[courseKey(source, target)] || null;
-}
-
-export function getAvailableTargets(courses, source) {
-  return Object.values(courses)
-    .filter(course => course.source === source)
-    .map(course => course.target);
-}
-
-export function getAudioLanguage(text, preferredLanguage) {
-  if (preferredLanguage) return language(preferredLanguage).locale;
-  const value = String(text || '');
-  if (/^[\u0400-\u04FF]/.test(value)) return 'uk-UA';
-  return 'en-US';
-}
+// The curriculum has two billion addressable lesson IDs but materializes only one lesson at a time.
+export { MEGA_LESSON_COUNT, getVirtualLesson, getCurriculumStats, levelForLesson };
