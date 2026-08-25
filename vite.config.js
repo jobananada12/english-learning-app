@@ -31,34 +31,30 @@ const ukrainianTtsScript = `
 
 export default defineConfig({
   plugins: [
+    {
+      name: 'megaapp-language-ui-fix',
+      enforce: 'pre',
+      transform(code, id) {
+        if (!id.endsWith('/src/MegaApp.jsx') && !id.endsWith('\\src\\MegaApp.jsx')) return null;
+        let next = code.replaceAll('<span>UK</span>', '<span>UA</span>');
+        next = next.replace(
+          /function TranslateQuestion\(\{value,source,target\}\)\{[\\s\\S]*?\}\n?function TranslateOption/,
+          `function TranslateQuestion({value,source,target}){const v=bilingual(value);const phrase=source==='uk'?v.uk:v.en;const mainLabel=target==='en'?'Translate':'Переклади';const localLabel=source==='uk'?'Переклади':'Translate';const mainSpeech=\`${'${mainLabel}'} \${phrase}\`;const localSpeech=\`${'${localLabel}'} \${phrase}\`;return <div className="translate-question"><div><b>{mainLabel} «{phrase}»</b><SpeakButton text={phrase} code={target} speechText={mainSpeech}/></div><div><b>{localLabel} «{phrase}»</b><SpeakButton text={phrase} code={source} speechText={localSpeech}/></div></div>}\nfunction TranslateOption`
+        );
+        if (next === code) return null;
+        return { code: next, map: null };
+      }
+    },
     react(),
     {
       name: 'ukrainian-tts-fallback',
       transformIndexHtml(html) {
         return html.replace('</head>', ukrainianTtsScript + '</head>')
       }
-    },
-    {
-      name: 'megaapp-language-ui-fix',
-      transform(code, id) {
-        if (!id.endsWith('/src/MegaApp.jsx') && !id.endsWith('\\src\\MegaApp.jsx')) return null;
-
-        let next = code.replaceAll('<span>UK</span>', '<span>UA</span>');
-
-        next = next.replace(
-          /function TranslateQuestion\(\{value,source,target\}\)\{[\s\S]*?\}\n?function TranslateOption/,
-          `function TranslateQuestion({value,source,target}){const v=bilingual(value);const phrase=source==='uk'?v.uk:v.en;const mainLabel=target==='en'?'Translate':'Переклади';const localLabel=source==='uk'?'Переклади':'Translate';const mainSpeech=\`${'${mainLabel}'} \${phrase}\`;const localSpeech=\`${'${localLabel}'} \${phrase}\`;return <div className="translate-question"><div><b>{mainLabel} «{phrase}»</b><SpeakButton text={phrase} code={target} speechText={mainSpeech}/></div><div><b>{localLabel} «{phrase}»</b><SpeakButton text={phrase} code={source} speechText={localSpeech}/></div></div>}\nfunction TranslateOption`
-        );
-
-        if (next === code) return null;
-        return { code: next, map: null };
-      }
     }
   ],
   server: {
     watch: {
-      // Android/Gradle generates report files while the app is running.
-      // They are not source files and must not trigger Vite reloads.
       ignored: ['**/android/**', '**/android_backup/**']
     }
   }
