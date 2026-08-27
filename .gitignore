@@ -1,0 +1,7 @@
+﻿node_modules/
+dist/
+.idea/
+.vscode/
+android/
+gradle-*.zip
+parole.txt
