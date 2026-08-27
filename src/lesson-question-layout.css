@@ -1,1 +1,1 @@
-.q-meta + .question-line{margin-top:18px}.translate-question>div{font-size:28px}@media(max-width:700px){.q-meta + .question-line{margin-top:16px}.translate-question>div{font-size:24px}}
+.q-meta + .question-line{margin-top:18px}.translate-question>div{font-size:28px}.question>.answer-language{margin-top:28px;margin-bottom:-10px}@media(max-width:700px){.q-meta + .question-line{margin-top:16px}.translate-question>div{font-size:24px}.question>.answer-language{margin-top:24px;margin-bottom:-8px}}
