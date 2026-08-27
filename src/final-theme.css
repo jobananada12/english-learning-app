@@ -1,0 +1,35 @@
+/* Final visual theme: orange replaces the previous green accent. */
+:root{--accent:#FF7E00;--accent-soft:#fff3e8;--accent-dark:#cc6500}
+
+/* Accent surfaces, borders and icons */
+.logo{background:#FF7E00!important}
+.hero{background:linear-gradient(135deg,#FF7E00,#ffad66)!important;box-shadow:0 12px 30px #FF7E0030!important}
+.progress i{background:#FF7E00!important}
+.lesson-card:hover{border-color:#FF7E00!important}
+.lesson-icon{color:#FF7E00!important}
+.lesson-card.done .lesson-icon{background:#FF7E00!important;color:#fff!important}
+.bottom button.active{color:#FF7E00!important}
+.speak-icon{color:#FF7E00!important}
+.speak-icon:hover{background:#fff3e8!important;border-color:#FF7E00!important}
+.hint-word{color:#FF7E00!important;border-bottom-color:#FF7E00!important}
+.hint-word:hover{color:#cc6500!important}
+.answer-card:hover{border-color:#FF7E00!important;background:#fffaf5!important}
+.answer-card.correct{border-color:#FF7E00!important;background:#fff3e8!important}
+.feedback.good{color:#cc6500!important;background:#fff3e8!important}
+.continue{background:#FF7E00!important}
+.result-grid svg{color:#FF7E00!important}
+.chat-input input:focus{border-color:#FF7E00!important}
+.chat-input button{background:#FF7E00!important}
+
+/* Sentence-building layout: move YOUR SENTENCE lower and keep its word text black. */
+.word-order-sentence{margin-top:30px!important}
+.word-order-sentence .word-order-built{margin-top:8px!important}
+.word-order-sentence .word-chip{color:#202124!important;font-size:18px!important;line-height:1.35!important}
+
+/* The hint for the sentence target stays visually separated from the question. */
+.question>.answer-language{margin-top:30px!important}
+
+/* Orange answer borders/status accents. */
+.answer-status{color:#FF7E00!important}
+.lesson-card.done{border-color:#FF7E00!important}
+.level-chip:hover{border-color:#FF7E00!important}
