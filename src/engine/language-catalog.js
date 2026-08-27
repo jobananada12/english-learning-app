@@ -1,0 +1,4 @@
+export const LANGUAGE_CATALOG=[
+['uk','uk-UA','Українська','🇺🇦'],['en','en-US','English','🇬🇧'],['pl','pl-PL','Polski','🇵🇱'],['de','de-DE','Deutsch','🇩🇪'],['fr','fr-FR','Français','🇫🇷'],['es','es-ES','Español','🇪🇸'],['it','it-IT','Italiano','🇮🇹'],['pt','pt-PT','Português','🇵🇹'],['nl','nl-NL','Nederlands','🇳🇱'],['cs','cs-CZ','Čeština','🇨🇿'],['sk','sk-SK','Slovenčina','🇸🇰'],['ro','ro-RO','Română','🇷🇴'],['hu','hu-HU','Magyar','🇭🇺'],['tr','tr-TR','Türkçe','🇹🇷'],['sv','sv-SE','Svenska','🇸🇪'],['no','nb-NO','Norsk','🇳🇴'],['da','da-DK','Dansk','🇩🇰'],['fi','fi-FI','Suomi','🇫🇮'],['ja','ja-JP','日本語','🇯🇵'],['ko','ko-KR','한국어','🇰🇷'],['zh','zh-CN','中文','🇨🇳'],['ar','ar-SA','العربية','🇸🇦'],['hi','hi-IN','हिन्दी','🇮🇳']
+].map(([code,locale,name,flag])=>({code,locale,name,flag}));
+export const language=code=>LANGUAGE_CATALOG.find(x=>x.code===code)||LANGUAGE_CATALOG[0];
