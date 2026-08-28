@@ -28,10 +28,11 @@ const ukrainianTtsScript = `
 
 const lessonUiFix = {
   name: 'lesson-ui-fix',
+  enforce: 'pre',
   transform(code, id) {
     if (!id.replaceAll('\\', '/').endsWith('/src/MegaApp.jsx')) return null
 
-    const questionReplacement = `function QuestionText({q,source,target){
+    const questionReplacement = `function QuestionText({q,source,target}){
   const targetText=String(q.questionTarget||q.q||'').trim();
   const sourceText=String(q.questionSource||'').trim();
   if(!targetText&&!sourceText)return null;
@@ -77,8 +78,8 @@ function Result`
 
 export default defineConfig({
   plugins: [
-    react(),
     lessonUiFix,
+    react(),
     {
       name: 'ukrainian-tts-fallback',
       transformIndexHtml(html) { return html.replace('</head>', ukrainianTtsScript + '</head>') }
