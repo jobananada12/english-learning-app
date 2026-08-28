@@ -4,11 +4,11 @@ export const MEGA_LESSON_COUNT=2000000000;
 export const LEVELS=['A1','A2','B1','B2','C1','C2'];
 const W={
 hello:['привіт','hello','cześć','hallo','bonjour','hola','ciao','olá','water','voda','voda','salut','szia','merhaba','hej','hei','hej','hei','こんにちは','안녕하세요','你好','مرحبا','नमस्ते'],
-water:['вода','water','woda','Wasser','eau','agua','acqua','água','water','voda','voda','apă','víz','yemek','vatten','vann','vand','vesi','水','물','水','ماء','पानी'],
+water:['вода','water','woda','Wasser','eau','agua','acqua','água','eten','voda','voda','apă','víz','yemek','vatten','vann','vand','vesi','水','물','水','ماء','पानी'],
 food:['їжа','food','jedzenie','Essen','nourriture','comida','cibo','comida','eten','jídlo','jedlo','mâncare','étel','yemek','mat','mat','mad','ruoka','食べ物','음식','食物','طعام','भोजन'],
 home:['дім','home','dom','Zuhause','maison','casa','casa','casa','huis','domov','domov','acasă','otthon','ev','hem','hjem','hjem','koti','家','집','家','منزل','घर'],
 friend:['друг','friend','przyjaciel','Freund','ami','amigo','amico','amigo','vriend','přítel','priateľ','prieten','barát','arkadaş','vän','venn','ven','ystävä','友達','친구','朋友','صديق','दोस्त'],
-book:['книга','book','książka','Buch','livre','libro','libro','livro','boek','kniha','kniha','carte','könyv','kitap','bok','bok','bog','kirja','本','책','书','كتاب','कितاب'],
+book:['книга','book','książka','Buch','livre','libro','libro','livro','boek','kniha','kniha','carte','könyv','kitap','bok','bok','bog','kirja','本','책','书','كتاب','किताब'],
 good:['добрий','good','dobry','gut','bon','bueno','buono','bom','goed','dobrý','dobrý','bun','jó','iyi','bra','god','god','hyvä','良い','좋은','好','جيد','अच्छा'],
 go:['йти','go','iść','gehen','aller','ir','andare','ir','gaan','jít','ísť','a merge','menni','gitmek','gå','gå','gå','mennä','行く','가다','去','يذهب','जाना'],
 };
@@ -17,6 +17,7 @@ const hash=n=>{let x=Math.imul((n>>>0)^0x9e3779b9,0x85ebca6b);x^=x>>>13;return x
 const pick=(n,o=0)=>K[hash(n+o)%K.length];
 const idx=c=>LANGUAGE_CATALOG.findIndex(x=>x.code===c);
 const word=(k,c)=>W[k]?.[Math.max(0,idx(c))]||W[k]?.[1]||k;
+export const translateWord=(text,from,to)=>{const value=String(text??'');const fromIndex=idx(from),toIndex=idx(to);for(const k of K){if(W[k]?.[fromIndex]===value)return W[k]?.[toIndex]||value}return value};
 const shuffle=(a,s)=>{const x=[...new Set(a)];for(let i=x.length-1;i>0;i--){const j=hash(s+i)%(i+1);[x[i],x[j]]=[x[j],x[i]]}return x};
 const distinctKeys=(seed,count)=>{const out=[];let offset=0;while(out.length<count&&offset<K.length*4){const k=pick(seed,offset++);if(!out.includes(k))out.push(k)}return out};
 export const levelForLesson=id=>{const n=Math.max(1,Math.min(MEGA_LESSON_COUNT,Math.floor(Number(id)||1)));return LEVELS[Math.min(LEVELS.length-1,Math.floor((n-1)*LEVELS.length/MEGA_LESSON_COUNT))]};
