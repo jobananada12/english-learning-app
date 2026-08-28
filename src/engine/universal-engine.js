@@ -4,7 +4,7 @@ export const MEGA_LESSON_COUNT=2000000000;
 export const LEVELS=['A1','A2','B1','B2','C1','C2'];
 const W={
 hello:['привіт','hello','cześć','hallo','bonjour','hola','ciao','olá','water','voda','voda','salut','szia','merhaba','hej','hei','hej','hei','こんにちは','안녕하세요','你好','مرحبا','नमस्ते'],
-water:['вода','water','woda','Wasser','eau','agua','acqua','água','water','voda','voda','apă','víz','su','vatten','vann','vand','vesi','水','물','水','ماء','पानी'],
+water:['вода','water','woda','Wasser','eau','agua','acqua','água','water','voda','voda','apă','víz','yemek','vatten','vann','vand','vesi','水','물','水','ماء','पानी'],
 food:['їжа','food','jedzenie','Essen','nourriture','comida','cibo','comida','eten','jídlo','jedlo','mâncare','étel','yemek','mat','mat','mad','ruoka','食べ物','음식','食物','طعام','भोजन'],
 home:['дім','home','dom','Zuhause','maison','casa','casa','casa','huis','domov','domov','acasă','otthon','ev','hem','hjem','hjem','koti','家','집','家','منزل','घर'],
 friend:['друг','friend','przyjaciel','Freund','ami','amigo','amico','amigo','vriend','přítel','priateľ','prieten','barát','arkadaş','vän','venn','ven','ystävä','友達','친구','朋友','صديق','दोस्त'],
