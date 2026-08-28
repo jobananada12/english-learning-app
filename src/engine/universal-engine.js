@@ -21,6 +21,25 @@ export const translateWord=(text,from,to)=>{const value=String(text??'');const f
 const shuffle=(a,s)=>{const x=[...new Set(a)];for(let i=x.length-1;i>0;i--){const j=hash(s+i)%(i+1);[x[i],x[j]]=[x[j],x[i]]}return x};
 const distinctKeys=(seed,count)=>{const out=[];let offset=0;while(out.length<count&&offset<K.length*4){const k=pick(seed,offset++);if(!out.includes(k))out.push(k)}return out};
 export const levelForLesson=id=>{const n=Math.max(1,Math.min(MEGA_LESSON_COUNT,Math.floor(Number(id)||1)));return LEVELS[Math.min(LEVELS.length-1,Math.floor((n-1)*LEVELS.length/MEGA_LESSON_COUNT))]};
+const question=(kind,wordText,source,target)=>{
+ if(source==='uk'&&target==='en'){
+  if(kind==='what') return `Що означає “${wordText}”?`;
+  if(kind==='choose') return `Обери англійське слово для “${wordText}”.`;
+  if(kind==='translate') return `Переклади “${wordText}” англійською.`;
+  return `Обери правильну пару.`;
+ }
+ if(source==='en'&&target==='uk'){
+  if(kind==='what') return `What does “${wordText}” mean?`;
+  if(kind==='choose') return `Choose the Ukrainian word for “${wordText}”.`;
+  if(kind==='translate') return `Translate “${wordText}” into Ukrainian.`;
+  return `Choose the correct pair.`;
+ }
+ const sourceName=language(source).name,targetName=language(target).name;
+ if(kind==='what') return `What does “${wordText}” mean?`;
+ if(kind==='choose') return `Choose the ${targetName} word for “${wordText}”.`;
+ if(kind==='translate') return `Translate “${wordText}” into ${targetName}.`;
+ return `Choose the correct ${sourceName} ↔ ${targetName} pair.`;
+};
 export function getVirtualLesson(id,source='uk',target='en'){
  const n=Math.max(1,Math.min(MEGA_LESSON_COUNT,Math.floor(Number(id)||1))),s=hash(n),level=levelForLesson(n),[a,b,c,d]=distinctKeys(s,4),A=word(a,target),AS=word(a,source),B=word(b,target),BS=word(b,source),C=word(c,target),CS=word(c,source),D=word(d,target),DS=word(d,source),sn=language(source).name,tn=language(target).name;
  const vocabulary=shuffle([AS,BS,CS,DS],s);
@@ -28,10 +47,10 @@ export function getVirtualLesson(id,source='uk',target='en'){
  const translation=shuffle([A,B,C,D],s+2);
  const pairs=shuffle([`${A} — ${AS}`,`${B} — ${BS}`,`${C} — ${CS}`,`${D} — ${DS}`],s+3);
  return{id:`${source}-${target}-${n}`,number:n,level,unit:`${level} · Unit ${1+(n-1)%40}`,title:`${sn} → ${tn} · Lesson ${n.toLocaleString('en-US')}`,icon:['🌱','🌿','🚀','🧠','🎓','🏆'][LEVELS.indexOf(level)],xp:10+LEVELS.indexOf(level)*5,source,target,questions:[
-  {skill:'vocabulary',q:`What does “${A}” mean?`,options:vocabulary,answer:AS,sourceText:A,targetText:AS},
-  {skill:'retrieval',q:`Choose the ${tn} word for “${BS}”.`,options:retrieval,answer:B,sourceText:B,targetText:BS},
-  {skill:'translation',q:`Translate “${CS}” into ${tn}.`,options:translation,answer:C,sourceText:C,targetText:CS},
-  {skill:'context',q:`Choose the correct ${sn} ↔ ${tn} pair.`,options:pairs,answer:`${A} — ${AS}`,sourceText:A,targetText:AS}
+  {skill:'vocabulary',q:`What does “${A}” mean?`,options:vocabulary,answer:AS,sourceText:A,targetText:AS,questionSource:question('what',A,source,target),questionTarget:`What does “${A}” mean?`},
+  {skill:'retrieval',q:`Choose the ${tn} word for “${BS}”.`,options:retrieval,answer:B,sourceText:B,targetText:BS,questionSource:question('choose',BS,source,target),questionTarget:`Choose the ${tn} word for “${BS}”.`},
+  {skill:'translation',q:`Translate “${CS}” into ${tn}.`,options:translation,answer:C,sourceText:C,targetText:CS,questionSource:question('translate',CS,source,target),questionTarget:`Translate “${CS}” into ${tn}.`},
+  {skill:'context',q:`Choose the correct ${sn} ↔ ${tn} pair.`,options:pairs,answer:`${A} — ${AS}`,sourceText:A,targetText:AS,questionSource:question('pair',A,source,target),questionTarget:`Choose the correct ${sn} ↔ ${tn} pair.`}
  ]};
 }
 export const getCurriculumStats=()=>({lessonCount:MEGA_LESSON_COUNT,levels:LEVELS.map((level,i)=>{const start=Math.floor(i*MEGA_LESSON_COUNT/LEVELS.length)+1;const end=Math.floor((i+1)*MEGA_LESSON_COUNT/LEVELS.length);return{level,lessonCount:end-start+1}}),supportedLanguages:LANGUAGE_CATALOG.length,languagePairs:LANGUAGE_CATALOG.length*(LANGUAGE_CATALOG.length-1)});
