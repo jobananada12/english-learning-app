@@ -1,5 +1,5 @@
-import {LANGUAGE_CATALOG,language,MEGA_LESSON_COUNT,LEVELS,getVirtualLesson,getCurriculumStats,getAudioLanguage,levelForLesson} from './universal-engine';
-export {LANGUAGE_CATALOG,language,MEGA_LESSON_COUNT,LEVELS,getVirtualLesson,getCurriculumStats,getAudioLanguage,levelForLesson};
+import {LANGUAGE_CATALOG,language,MEGA_LESSON_COUNT,LEVELS,getVirtualLesson,getCurriculumStats,getAudioLanguage,levelForLesson,translateWord} from './universal-engine';
+export {LANGUAGE_CATALOG,language,MEGA_LESSON_COUNT,LEVELS,getVirtualLesson,getCurriculumStats,getAudioLanguage,levelForLesson,translateWord};
 export const courseKey=(source,target)=>`${source}-${target}`;
 export const normalizeQuestion=q=>({type:q.type||'choice',q:String(q.q||''),options:Array.isArray(q.options)?q.options:[],answer:String(q.answer||''),sourceText:q.sourceText||null,targetText:q.targetText||null,audioLanguage:q.audioLanguage||null});
 export const normalizeLesson=(lesson,index)=>({id:lesson.id??index+1,unit:lesson.unit||'Basics',title:lesson.title||`Lesson ${index+1}`,icon:lesson.icon||'📘',xp:lesson.xp||20,questions:(lesson.questions||[]).map(normalizeQuestion)});
