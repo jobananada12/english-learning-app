@@ -47,10 +47,10 @@ export function getVirtualLesson(id,source='uk',target='en'){
  const translation=shuffle([A,B,C,D],s+2);
  const pairs=shuffle([`${A} — ${AS}`,`${B} — ${BS}`,`${C} — ${CS}`,`${D} — ${DS}`],s+3);
  return{id:`${source}-${target}-${n}`,number:n,level,unit:`${level} · Unit ${1+(n-1)%40}`,title:`${sn} → ${tn} · Lesson ${n.toLocaleString('en-US')}`,icon:['🌱','🌿','🚀','🧠','🎓','🏆'][LEVELS.indexOf(level)],xp:10+LEVELS.indexOf(level)*5,source,target,questions:[
-  {skill:'vocabulary',q:`What does “${A}” mean?`,options:vocabulary,answer:AS,sourceText:`${target.toUpperCase()} What does “${A}” mean?`,targetText:`${source.toUpperCase()} ${question('what',A,source,target)}`},
-  {skill:'retrieval',q:`Choose the ${tn} word for “${BS}”.`,options:retrieval,answer:B,sourceText:`${target.toUpperCase()} Choose the ${tn} word for “${BS}”.`,targetText:`${source.toUpperCase()} ${question('choose',BS,source,target)}`},
-  {skill:'translation',q:`Translate “${CS}” into ${tn}.`,options:translation,answer:C,sourceText:`${target.toUpperCase()} Translate “${CS}” into ${tn}.`,targetText:`${source.toUpperCase()} ${question('translate',CS,source,target)}`},
-  {skill:'context',q:`Choose the correct ${sn} ↔ ${tn} pair.`,options:pairs,answer:`${A} — ${AS}`,sourceText:`${target.toUpperCase()} Choose the correct ${sn} ↔ ${tn} pair.`,targetText:`${source.toUpperCase()} ${question('pair',A,source,target)}`}
+  {skill:'vocabulary',q:`What does “${A}” mean?`,options:vocabulary,answer:AS,sourceText:A,targetText:AS,questionSource:question('what',A,source,target),questionTarget:`What does “${A}” mean?`},
+  {skill:'retrieval',q:`Choose the ${tn} word for “${BS}”.`,options:retrieval,answer:B,sourceText:B,targetText:BS,questionSource:question('choose',BS,source,target),questionTarget:`Choose the ${tn} word for “${BS}”.`},
+  {skill:'translation',q:`Translate “${CS}” into ${tn}.`,options:translation,answer:C,sourceText:C,targetText:CS,questionSource:question('translate',CS,source,target),questionTarget:`Translate “${CS}” into ${tn}.`},
+  {skill:'context',q:`Choose the correct ${sn} ↔ ${tn} pair.`,options:pairs,answer:`${A} — ${AS}`,sourceText:A,targetText:AS,questionSource:question('pair',A,source,target),questionTarget:`Choose the correct ${sn} ↔ ${tn} pair.`}
  ]};
 }
 export const getCurriculumStats=()=>({lessonCount:MEGA_LESSON_COUNT,levels:LEVELS.map((level,i)=>{const start=Math.floor(i*MEGA_LESSON_COUNT/LEVELS.length)+1;const end=Math.floor((i+1)*MEGA_LESSON_COUNT/LEVELS.length);return{level,lessonCount:end-start+1}}),supportedLanguages:LANGUAGE_CATALOG.length,languagePairs:LANGUAGE_CATALOG.length*(LANGUAGE_CATALOG.length-1)});
